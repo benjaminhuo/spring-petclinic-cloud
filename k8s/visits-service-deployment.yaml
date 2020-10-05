@@ -17,6 +17,14 @@ spec:
       labels:
         app: visits-service
     spec:
+      initContainers:
+        - name: sidecar
+          image: apache/skywalking-base:8.1.0-es7 # 容器镜像，包含静态资源文件
+          imagePullPolicy: IfNotPresent
+          command: ["cp", "-r", "/skywalking/agent", "/sidecar"]
+          volumeMounts:
+            - name: sidecar
+              mountPath: /sidecar
       containers:
       - image: ${REPOSITORY_PREFIX}/visits-service:latest
         name: visits-service
@@ -36,12 +44,6 @@ spec:
           preStop:
             exec:
               command: ["sh", "-c", "sleep 10"]
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            cpu: 2000m
-            memory: 1Gi
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: kubernetes
@@ -54,10 +56,20 @@ spec:
              secretKeyRef:
                name: visits-db-mysql
                key: mysql-root-password
-        - name: MANAGEMENT_METRICS_EXPORT_WAVEFRONT_URI
-          value: proxy://wavefront-proxy.spring-petclinic.svc.cluster.local:2878
+        - name: JAVA_OPTS
+          value: -javaagent:/sidecar/agent/skywalking-agent.jar
+        - name: SW_AGENT_NAME
+          value: visits
+        - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+          value: skywalking-oap.demo.svc:11800 # skywalk oap 后端服务
         ports:
         - containerPort: 8080
         resources: {}
+        volumeMounts:
+            - name: sidecar
+              mountPath: /sidecar
+      volumes:
+        - name: sidecar  #共享agent文件夹
+          emptyDir: {}
       restartPolicy: Always
 status: {}
