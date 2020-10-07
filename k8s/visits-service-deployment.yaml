@@ -60,6 +60,8 @@ spec:
           value: -javaagent:/sidecar/opentelemetry-javaagent-all.jar
         - name: OTEL_OTLP_ENDPOINT
           value: otel-collector.demo.svc:55680
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: service.name=visits
         ports:
         - containerPort: 8080
         resources: {}
