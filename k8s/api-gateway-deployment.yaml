@@ -17,6 +17,14 @@ spec:
       labels:
         app: api-gateway
     spec:
+      initContainers:
+        - name: sidecar
+          image: benjaminhuo/opentelemetry-javaagent-all:v0.8.0 
+          imagePullPolicy: IfNotPresent
+          command: ["cp", "-r", "/opentelemetry/opentelemetry-javaagent-all.jar", "/sidecar/"]
+          volumeMounts:
+            - name: sidecar
+              mountPath: /sidecar
       containers:
       - image: ${REPOSITORY_PREFIX}/api-gateway:latest
         name: api-gateway
@@ -36,18 +44,21 @@ spec:
           preStop:
             exec:
               command: ["sh", "-c", "sleep 10"]
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            cpu: 2000m
-            memory: 1Gi
+        resources: {}
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: kubernetes
-        - name: MANAGEMENT_METRICS_EXPORT_WAVEFRONT_URI
-          value: proxy://wavefront-proxy.spring-petclinic.svc.cluster.local:2878
+        - name: JAVA_OPTS
+          value: -javaagent:/sidecar/opentelemetry-javaagent-all.jar
+        - name: OTEL_OTLP_ENDPOINT
+          value: otel-collector.demo.svc:55680
         ports:
         - containerPort: 8080
+        volumeMounts:
+            - name: sidecar
+              mountPath: /sidecar
+      volumes:
+        - name: sidecar  #共享agent文件夹
+          emptyDir: {}
       restartPolicy: Always
 status: {}

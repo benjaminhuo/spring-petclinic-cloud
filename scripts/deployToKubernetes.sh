@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export REPOSITORY_PREFIX=benjaminhuo
+
 if [ -z "${REPOSITORY_PREFIX}" ]
 then 
     echo "Please set the REPOSITORY_PREFIX"
