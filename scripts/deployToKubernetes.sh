@@ -1,4 +1,5 @@
 #!/bin/bash
+export REPOSITORY_PREFIX=benjaminhuo
 
 if [ -z "${REPOSITORY_PREFIX}" ]
 then 
