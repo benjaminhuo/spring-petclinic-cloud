@@ -1,4 +1,4 @@
-VERSION ?= v0.8.0
+VERSION ?= v0.7.0
 IMG ?= benjaminhuo/opentelemetry-javaagent-all:$(VERSION)
 
 docker:
